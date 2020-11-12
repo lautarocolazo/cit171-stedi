@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>STEDI Login Page</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link rel="shortcut icon" href= "favicon.ico" type="image/x-icon" />
+    <nav>
+        <a href="#"><div>Home</div></a>
+        <a href="#"><div>About</div></a>
+        <a href="#"><div>Contact</div></a>
+        <a href="#"><div>Sitemap</div></a>
+    </nav>
+</head>
+<body>
+<div class="page-header">
+    <p><img src="stedi-logo-4000px-x-4000px.png" width="300" height="300" style="background-color:black;"/></p>
+</div>
+<div style="text-align:center">
+
+    <form name="loginForm" id="login" method="post" >
+        <p>
+            <label class="stepcount" for="login"><span>Username:</span></label>
+            <input class="stepcount" type="text" id="un" name="username" size="25" onchange="setusername()" required
+                   placeholder="Enter_Username">
+        </p>
+        <p>
+            <label class="stepcount" for="login"><span>Password:</span></span></label>
+            <input class="stepcount" type="password" id="pw" name="pwd" size="25" onchange="setuserpassword()" required
+                   placeholder="Ent3r_@StrongPazzword123">
+        </p>
+        <p>
+            <input class="btn btn-lg btn-primary" id="loginbtn" type="button" onclick="userlogin()" value="Login">
+        </p>
+        <p>
+            <a class="stepcount" id="newusr" href="/createnewuser.html">Create account</a>
+        </p>
+    </form>
+</div>
+<script src="jquery-3.1.1.min.js"></script>
+<script src="login.js"></script>
+<script src="manageuser.js"></script>
+
+</body>
+
+</html>
