@@ -1,3 +1,5 @@
+//© 2021 Sean Murdock
+
 var margin = {top: 10, right: 30, bottom: 30, left: 60};
 var width = 460 - margin.left - margin.right;
 var height = 400 - margin.top - margin.bottom;

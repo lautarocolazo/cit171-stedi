@@ -1,10 +1,10 @@
+//© 2021 Sean Murdock
 
-
-var customerName = "";
-var phone = "";
-var bday = "";
-var form = "";
-var elements = "";
+let customerName = "";
+let phone = "";
+let bday = "";
+let form = "";
+let elements = "";
 
 function setcustomername(){
     customerName = $("#cn").val();
@@ -15,7 +15,7 @@ function setemail(){
 }
 
 function setphone(){
-    phone = $("#phone").val();
+    phone = $("#phone").val().replace(/\D+/g, "");
 }
 
 function setbday(){
@@ -49,7 +49,7 @@ function createbutton(){
     context.appendChild(button);
 }
 
-function findcustomer(){
+function findcustomer(email){
     var headers = { "suresteps.session.token": localStorage.getItem("token")};
     $.ajax({
         type: 'GET',
@@ -65,6 +65,15 @@ function findcustomer(){
 }
 
 function createcustomer(){
+    //in case they hit the back/forward buttons and our in memory variables got reset
+    setusername();
+    setuserpassword();
+    setverifypassword();
+    setcustomername();
+    setemail();
+    setphone();
+    setbday();
+
     var customer = {
         customerName : customerName,
         email : email,
@@ -72,26 +81,27 @@ function createcustomer(){
         birthDay: bday
     }
 
-    var headers = { "suresteps.session.token": localStorage.getItem("token")};
-//    $.ajax({
-//        type: 'POST',
-//        url: '/createcustomer',
-//        data: '{"customerName":"'+ customerName +'","email":"' + email +
-//                '", "phone":"' + phone + '", "birthDay":"' + bday + '"}',
-//        headers: {
-//            'suresteps.session.token' : localStorage.getItem("token")
-//        })
+
     $.ajax({
         type: 'POST',
         url: '/customer',
         data: JSON.stringify(customer),
         contentType: 'application/text',
         dataType: 'text',
-        headers: headers,
         success: function(data) {
             localStorage.setItem("customer",JSON.stringify(customer));
             window.location.href=data
         }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: '/user',
+        data: JSON.stringify({'userName':email, email, password, phone, "birthDate":bday, 'verifyPassword':verifypassword}),//we are using the email as the user name
+        success: function(data) { alert(data);
+        window.location.href = "/index.html"},
+        contentType: "application/text",
+        dataType: 'text'
     });
 }
 

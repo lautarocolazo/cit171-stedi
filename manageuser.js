@@ -1,24 +1,26 @@
-var userName = "";
-var password = "";
-var passwordRegEx=/((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!]).{6,40})/;
+//© 2021 Sean Murdock
+
+let userName = "";
+let password = "";
+let verifypassword = "";
+let passwordRegEx=/((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!]).{6,40})/;
 
 function setusername(){
-    userName = $("#un").val();
+    userName = $("#username").val();
 }
 
 function setuserpassword(){
-    password = $("#pw").val();
+    password = $("#password").val();
     var valid=passwordRegEx.exec(password);
     if (!valid){
-        console.log('invalid password');
+        alert('Must be 6 digits, upper, lower, number, and symbol');
     }
 }
 
-function setvpwd(){
-    vpwd = $("#vpwd").val();
-    var valid=passwordRegEx.exec(vpwd);
-    if (!valid){
-        console.log('invalid password');
+function setverifypassword(){
+    verifypassword = $("#verifypassword").val();
+    if (verifypassword!=password){
+        alert('Passwords must be entered the same twice');
     }
 }
 
@@ -30,13 +32,13 @@ function savetoken(token){
 
 }
 
-function checkexpiredtoken(){
+function checkexpiredtoken(token){
 // read token from local storage - check with ajax call
     if(window.localStorage){
     usertoken = localStorage.getItem("token");
     $.ajax({
        type: 'GET',
-        url: '/checkToken',
+        url: '/validate/'+token,
         data: JSON.stringify({usertoken}),
         success: function(data){savetoken(data)},
         contentType: "application/text",
@@ -51,9 +53,9 @@ function userlogin(){
         type: 'POST',
         url: '/login',
         data: JSON.stringify({userName, password}),
-        success: function(data) {savetoken(data);
-                    window.location.href = "/timer.html"
-            },
+        success: function(data) {
+            window.location.href = "/timer.html#"+data;//add the token to the url
+        },
         contentType: "application/text",
         dataType: 'text'
     });
@@ -113,3 +115,14 @@ function getstephistory(){
             dataType: 'text'
         });
 }
+
+var enterFunction = (event) =>{
+    if (event.keyCode === 13){
+        event.preventDefault();
+        $("#loginbtn").click();
+    }
+}
+
+var passwordField = document.getElementById("password");
+
+passwordField.addEventListener("keyup", enterFunction);

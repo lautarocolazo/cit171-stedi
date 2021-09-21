@@ -1,30 +1,31 @@
-    var clicks = 0;
-    var stopwatch;
-    var runningstate = 0; // 1 means the timecounter is running 0 means counter stopped
-    var stoptime = 0;
-    var currenttime;
-    var usertoken=localStorage.getItem("token");
-    var stepsTaken = [];
-    var starttime;
-    var previousStepTime;
-    var customer = JSON.parse(localStorage.getItem("customer"));
-    var startandstopbutton;
-    var counterbutton;
-    var timerUIWebSocket = new WebSocket(`ws${location.protocol=='https:'? 's': ''}://${location.hostname}:${location.port}/timeruiwebsocket`)
+//© 2021 Sean Murdock
+
+    let clicks = 0;
+    let stopwatch;
+    let runningstate = 0; // 1 means the timecounter is running 0 means counter stopped
+    let stoptime = 0;
+    let currenttime;
+    let usertoken="";//initialize to empty string
+    let stepsTaken = [];
+    let starttime;
+    let previousStepTime;
+    let startandstopbutton;
+    let counterbutton;
+    let email="";
+
 
     $(document).ready(function(){
-        $('#dob').html(customer.birthDay);
         startandstopbutton = document.getElementById('startandstopbutton');
         counterbutton = document.getElementById('counterbutton');
-
+        let hash= location.hash;//will include the #
+        let hashparts = hash.split("#");
+        if (hashparts.length < 2) {
+            window.location="/"; //there is no login token on the url, so they must not have logged in yet, we will help redirect them here
+        } else {
+            usertoken = hashparts[1];// the url should look like https://stedi.me/timer.html#4c2286a7-8fdc-47c5-b972-739769554c88
+            validateToken();//check if token is expired, if not display the email, if expired send to login
+        }
     });
-//    var webSocket  = new WebSocket("ws://"+location.hostname+":"+location.port+"/socket");
-//    webSocket.onopen = function (event){webSocket.send("StartReading~"+usertoken)};
-//    webSocket.onmessage = function (webSocketPayload) {updateStepCount(webSocketPayload);};
-//    webSocket.onclose = function () {
-//        alert("Thank you for visiting Sure Steps, your session has ended");
-//        window.location.href = "/index.html";
-//    };
 
     document.onkeyup = (e) => {
         if (e.which == 89) {
@@ -32,65 +33,9 @@
         }
     };
 
-    var setupUISocket = () => {
-        timerUIWebSocket.onclose = () =>{
-            alert("The workspace or server has shut down this connection. You will be re-directed to the login page.")
-            window.location.href="/";
-        }
-    }
 
-    var fetchToggleState = () => {
 
-        var headers = { "suresteps.session.token": localStorage.getItem("token")};
-        $.ajax({
-            type: 'GET',
-            url: '/simulation',
-            contentType: 'application/text',
-            dataType: 'text',
-            headers: headers,
-            statusCode: {
-                200: (simulationActive) => {
-                    var active = JSON.parse(simulationActive);
-
-                    if (active === true){
-                        $('#enablesimulationcheckbox').prop('checked', true);
-                    } else{
-                        $('#enablesimulationcheckbox').prop('checked', false);
-                    }
-                },
-                401: () => window.location.href="/",
-            },
-        });
-
-    }
-
-    // this function is called when the toggle is activated/de-activated to enable simulated user traffic
-    var simulationUpdate = (object) => {
-        if ($(object).is(":checked")){
-          $.ajax({
-              type: 'POST',
-              url: '/simulation',
-              statusCode:{
-                    401: () => window.location.href="/",
-              },
-              headers: { "suresteps.session.token": localStorage.getItem("token")},
-              contentType: "application/text",
-              dataType: 'text'
-          });
-        } else{
-          $.ajax({
-              type: 'DELETE',
-              url: '/simulation',
-              statusCode:{
-                401: () => window.location.href="/",
-              },
-              headers: { "suresteps.session.token": localStorage.getItem("token")},
-              contentType: "application/text",
-              dataType: 'text'
-          });        }
-    }
-
-    var saveRapidStepTest = (rapidStepTest) => {
+    const saveRapidStepTest = (rapidStepTest) => {
         $.ajax({
             type: 'POST',
             url: '/rapidsteptest',
@@ -98,22 +43,22 @@
             statusCode:{
                 401: () => window.location.href="/",
             },
-            headers: { "suresteps.session.token": localStorage.getItem("token")},
+            headers: { "suresteps.session.token": usertoken},
             contentType: "application/text",
             dataType: 'text'
         });
 
     }
 
-    var getRiskScore = () => {
+    const getRiskScore = () => {
         $.ajax({
             type: 'GET',
-            url: '/riskscore/'+customer.email,
+            url: '/riskscore/'+$('#email').html(),
             success: function(data) {
-                var customerRisk = JSON.parse(data);
+                let customerRisk = JSON.parse(data);
                 document.getElementById('score').innerHTML = customerRisk.score;
             },
-            headers: { "suresteps.session.token": localStorage.getItem("token")},
+            headers: { "suresteps.session.token": usertoken},
             contentType: "application/text",
             dataType: 'text'
         });
@@ -121,7 +66,7 @@
     }
 
 
-    var updateStepCount = (webSocketPayload) => {
+    const updateStepCount = (webSocketPayload) => {
         if(webSocketPayload.data=="startTimer"){
             startandstop();
         } else if (webSocketPayload.data.indexOf("stepCount")>-1 && runningstate ==1){
@@ -129,28 +74,46 @@
         }
     }
 
-    function onStep() {
-        var stepDate = new Date();
-        var stepTime = stepDate.getTime();
+    const validateToken = () => {
+        let tokenEmail="";
+        $.ajax({
+           type: 'GET',
+            url: '/validate/'+usertoken,
+            success: function(data){
+               if (data==""){
+                 window.location="/"
+               } else{
+                 $('#email').html(data);
+               }
+            },//token is no longer valid (1 hour expiration), they need to log in
+            contentType: "application/text",
+            dataType: 'text' })
+
+        return tokenEmail;
+    }
+
+    const onStep = () => {
+        let stepDate = new Date();
+        let stepTime = stepDate.getTime();
         if (previousStepTime==null){
             previousStepTime=starttime;
         }
-        var timeTakenForStep = stepTime-previousStepTime;
+        let timeTakenForStep = stepTime-previousStepTime;
         stepsTaken.push(timeTakenForStep);
         previousStepTime = stepTime;
         clicks += 1;
         document.getElementById("clicks").innerHTML = clicks;
         if(clicks==30){
         	startandstop();
-        	var testTime = stepTime-starttime;
-            var rapidStepTest = {
-               token: localStorage.getItem("token"),
+        	let testTime = stepTime-starttime;
+            let rapidStepTest = {
+               token: usertoken,
                startTime: starttime,
                stopTime: stepTime,
                testTime: testTime,
                totalSteps: 30,
                stepPoints: stepsTaken,
-               customer: customer
+               customer: $('#email').html()
             };
             saveRapidStepTest(rapidStepTest);
             getRiskScore();
@@ -162,11 +125,11 @@
 
 	 };
 
-    var timecounter = (starttime) => {
+    const timecounter = (starttime) => {
         currentdate = new Date();
                 stopwatch = document.getElementById('stopwatch');
          
-        var timediff = currentdate.getTime() - starttime;
+        let timediff = currentdate.getTime() - starttime;
         if(runningstate == 0)
             {
             timediff = timediff + stoptime
@@ -184,7 +147,7 @@
     }
  
 
-    function startandstop() {
+    const startandstop = () => {
       if(runningstate==0)
       {
         startdate = new Date();
@@ -201,21 +164,21 @@
       }
     }
 
-    var pageStateStopped = () => {
+    const pageStateStopped = () => {
         startandstop.value = 'Start';
         startandstop.disabled=false;
         counterbutton.disabled=true;
         runningstate = 0;
     }
 
-    function resetstopwatch() {
+    const resetstopwatch = () => {
         stoptime = 0;
         window.clearTimeout(refresh);
       
         if(runningstate == 1)
         {
-            var resetdate = new Date();
-            var resettime = resetdate.getTime();
+            let resetdate = new Date();
+            let resettime = resetdate.getTime();
             timecounter(resettime);
         }
         else
@@ -226,15 +189,14 @@
         }
     }
 
-    var formattedtime = (unformattedtime) => {
-        var decisec = Math.floor(unformattedtime/100) + '';
-        var second = Math.floor(unformattedtime/1000);
-        var minute = Math.floor(unformattedtime/60000);
+    const formattedtime = (unformattedtime) => {
+        let decisec = Math.floor(unformattedtime/100) + '';
+        let second = Math.floor(unformattedtime/1000);
+        let minute = Math.floor(unformattedtime/60000);
         decisec = decisec.charAt(decisec.length - 1);
         second = second - 60 * minute + '';
         return minute + ':' + second + ':' + decisec;
     }
+    
 
-    fetchToggleState();
 
-    setupUISocket();
