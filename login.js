@@ -1,3 +1,5 @@
+// test comment
+
 function savetoken(token){
 // whatever passes as token should save into local storage
     if (window.localStorage){
