@@ -62,6 +62,19 @@ function userlogin(){
 
 }
 
+function oneTimePassword(){
+    setuserpassword();
+    setusername();
+    $.ajax({
+        type: 'POST',
+        url: 'https://dev.stedi.me/twofactorlogin/2089735910',
+        data: JSON.stringify({userName, password}),
+        contentType: "application/text",
+        dataType: 'text'
+    });
+
+}
+
 function readonlyforms(formid){
     form = document.getElementById(formid);
     elements = form.elements;

@@ -17,11 +17,14 @@
 
     <form name="loginForm" id="login" method="post" >
         <p>
-            <label class="stepcount" for="username">Email Address</label><br>
+            <label class="stepcount" for="username">Phone Number</label><br>
             <input class="stepcount" type="text" id="username" name="username" size="25" onchange="setusername()" required >
         </p>
         <p>
-            <label class="stepcount" for="password">Password</span></label><br>
+            <input class="btn btn-lg btn-primary" id="loginbtn" type="button" onclick="oneTimePassword()" value="Request Code">
+        </p>
+        <p>
+            <label class="stepcount" for="password">One Time Code</span></label><br>
             <input class="stepcount" type="password" id="password" name="pwd" size="25" onchange="setuserpassword()" required >
         </p>
         <p>
